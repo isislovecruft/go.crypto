@@ -120,6 +120,7 @@ const (
 	keyAltRight
 	keyHome
 	keyEnd
+	keyClearScreen
 	keyDeleteWord
 	keyDeleteLine
 	keyDeleteBeginLine
@@ -141,6 +142,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyBackspace, b[1:]
 	case 11: // ^K
 		return keyDeleteLine, b[1:]
+	case 12: // ^L
+		return keyClearScreen, b[1:]
 	case 21: // ^U
 		return keyDeleteBeginLine, b[1:]
 	case 23: // ^W
@@ -282,6 +285,15 @@ func (t *Terminal) move(up, down, left, right int) {
 func (t *Terminal) clearLineToRight() {
 	op := []rune{keyEscape, '[', 'K'}
 	t.queue(op)
+}
+
+func (t *Terminal) ClearScreen() () {
+	orgpos := t.pos
+	t.moveCursorToPos(0)
+	op := []rune{keyEscape, '[', '2', 'J', keyEscape, '[', 'H'}
+	t.queue(op)
+	t.queue([]rune(t.prompt))
+	t.setLine(t.line, orgpos)
 }
 
 const maxLineLength = 4096
@@ -461,6 +473,8 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 			return
 		}
 		t.eraseNPreviousChars(t.pos)
+	case keyClearScreen:
+		t.ClearScreen()
 	default:
 		if t.AutoCompleteCallback != nil {
 			prefix := string(t.line[:t.pos])
