@@ -108,7 +108,6 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 
 const (
 	keyCtrlD     = 4
-	keyCtrlU     = 21
 	keyEnter     = '\r'
 	keyEscape    = 27
 	keyBackspace = 127
@@ -124,6 +123,7 @@ const (
 	keyDeleteWord
 	keyDeleteLine
 	keyClearScreen
+	keyDeleteBeginLine
 )
 
 // bytesToKey tries to parse a key sequence from b. If successful, it returns
@@ -144,6 +144,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyDeleteLine, b[1:]
 	case 12: // ^L
 		return keyClearScreen, b[1:]
+	case 21: // ^U
+		return keyDeleteBeginLine, b[1:]
 	case 23: // ^W
 		return keyDeleteWord, b[1:]
 	}
@@ -509,7 +511,10 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 			t.pos++
 			t.eraseNPreviousChars(1)
 		}
-	case keyCtrlU:
+	case keyDeleteBeginLine:
+		if t.pos == 0 {
+			return
+		}
 		t.eraseNPreviousChars(t.pos)
 	case keyClearScreen:
 		// Erases the screen and moves the cursor to the home position.
