@@ -287,6 +287,15 @@ func (t *Terminal) clearLineToRight() {
 	t.queue(op)
 }
 
+func (t *Terminal) ClearScreen() () {
+	orgpos := t.pos
+	t.moveCursorToPos(0)
+	op := []rune{keyEscape, '[', '2', 'J', keyEscape, '[', 'H'}
+	t.queue(op)
+	t.queue([]rune(t.prompt))
+	t.setLine(t.line, orgpos)
+}
+
 const maxLineLength = 4096
 
 func (t *Terminal) setLine(newLine []rune, newPos int) {
@@ -517,12 +526,7 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		}
 		t.eraseNPreviousChars(t.pos)
 	case keyClearScreen:
-		// Erases the screen and moves the cursor to the home position.
-		t.queue([]rune("\x1b[2J\x1b[H"))
-		t.queue(t.prompt)
-		t.cursorX, t.cursorY = 0, 0
-		t.advanceCursor(visualLength(t.prompt))
-		t.setLine(t.line, t.pos)
+		t.ClearScreen()
 	default:
 		if t.AutoCompleteCallback != nil {
 			prefix := string(t.line[:t.pos])
