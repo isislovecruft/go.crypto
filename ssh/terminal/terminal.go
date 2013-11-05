@@ -122,6 +122,7 @@ const (
 	keyEnd
 	keyDeleteWord
 	keyDeleteLine
+	keyDeleteBeginLine
 )
 
 // bytesToKey tries to parse a key sequence from b. If successful, it returns
@@ -140,6 +141,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyBackspace, b[1:]
 	case 11: // ^K
 		return keyDeleteLine, b[1:]
+	case 21: // ^U
+		return keyDeleteBeginLine, b[1:]
 	case 23: // ^W
 		return keyDeleteWord, b[1:]
 	}
@@ -453,6 +456,11 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		}
 		t.line = t.line[:t.pos]
 		t.moveCursorToPos(t.pos)
+	case keyDeleteBeginLine:
+		if t.pos == 0 {
+			return
+		}
+		t.eraseNPreviousChars(t.pos)
 	default:
 		if t.AutoCompleteCallback != nil {
 			prefix := string(t.line[:t.pos])
