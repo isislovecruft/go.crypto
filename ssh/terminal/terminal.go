@@ -120,9 +120,9 @@ const (
 	keyAltRight
 	keyHome
 	keyEnd
+	keyClearScreen
 	keyDeleteWord
 	keyDeleteLine
-	keyClearScreen
 	keyDeleteBeginLine
 )
 
@@ -574,6 +574,14 @@ func (t *Terminal) writeLine(line []rune) {
 		t.queue(line[:todo])
 		t.advanceCursor(visualLength(line[:todo]))
 		line = line[todo:]
+
+		if t.cursorX == t.termWidth {
+			t.cursorX = 0
+			t.cursorY++
+			if t.cursorY > t.maxLine {
+				t.maxLine = t.cursorY
+			}
+		}
 	}
 }
 
@@ -669,6 +677,8 @@ func (t *Terminal) readLine() (line string, err error) {
 			if key == keyCtrlD {
 				if len(t.line) == 0 {
 					return "", io.EOF
+				} else if t.pos == len(t.line) {
+					break;
 				}
 			}
 			line, lineOk = t.handleKey(key)
