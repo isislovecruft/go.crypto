@@ -387,6 +387,9 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 			return
 		}
 		t.eraseNPreviousChars(1)
+	case keyCtrlD:
+		t.pos++
+		t.eraseNPreviousChars(1)
 	case keyAltLeft:
 		// move left by a word.
 		t.pos -= t.countToLeftWord()
@@ -626,7 +629,11 @@ func (t *Terminal) readLine() (line string, err error) {
 				break
 			}
 			if key == keyCtrlD {
-				return "", io.EOF
+				if t.pos == 0 && len(t.line) == 0 {
+					return "", io.EOF
+				} else if t.pos == len(t.line) {
+					break;
+				}
 			}
 			line, lineOk = t.handleKey(key)
 		}
