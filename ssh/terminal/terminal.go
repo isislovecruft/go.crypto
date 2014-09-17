@@ -107,6 +107,7 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 }
 
 const (
+	keyCtrlN     = 14
 	keyCtrlP     = 16
 	keyCtrlD     = 4
 	keyEnter     = '\r'
@@ -145,6 +146,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyDeleteLine, b[1:]
 	case 12: // ^L
 		return keyClearScreen, b[1:]
+	case 14: // ^N
+		return keyCtrlN, b[1:]
 	case 16: // ^P
 		return keyCtrlP, b[1:]
 	case 21: // ^U
@@ -480,6 +483,9 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		t.historyIndex++
 		runes := []rune(entry)
 		t.setLine(runes, len(runes))
+	case keyCtrlN:
+		// Handle Ctrl-N in whatever manner the Down arrow key is handled
+		fallthrough
 	case keyDown:
 		switch t.historyIndex {
 		case -1:
