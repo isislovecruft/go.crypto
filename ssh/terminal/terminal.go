@@ -107,6 +107,7 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 }
 
 const (
+	keyCtrlP     = 16
 	keyCtrlD     = 4
 	keyEnter     = '\r'
 	keyEscape    = 27
@@ -144,6 +145,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyDeleteLine, b[1:]
 	case 12: // ^L
 		return keyClearScreen, b[1:]
+	case 16: // ^P
+		return keyCtrlP, b[1:]
 	case 21: // ^U
 		return keyDeleteBeginLine, b[1:]
 	case 23: // ^W
@@ -422,6 +425,9 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		}
 		t.pos = len(t.line)
 		t.moveCursorToPos(t.pos)
+	case keyCtrlP:
+		// Handle Ctrl-P in whatever manner the Up arrow key is handled
+		fallthrough
 	case keyUp:
 		entry, ok := t.history.NthPreviousEntry(t.historyIndex + 1)
 		if !ok {
