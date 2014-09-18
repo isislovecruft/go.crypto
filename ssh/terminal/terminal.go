@@ -107,6 +107,7 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 }
 
 const (
+	keyCtrlB     = 2
 	keyCtrlN     = 14
 	keyCtrlP     = 16
 	keyCtrlD     = 4
@@ -138,6 +139,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 	switch b[0] {
 	case 1: // ^A
 		return keyHome, b[1:]
+	case 2: // ^B
+		return keyCtrlB, b[1:]
 	case 5: // ^E
 		return keyEnd, b[1:]
 	case 8: // ^H
@@ -404,6 +407,9 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		// move right by a word.
 		t.pos += t.countToRightWord()
 		t.moveCursorToPos(t.pos)
+	case keyCtrlB:
+		// Handle Ctrl-B in whatever manner the Left arrow key is handled
+		fallthrough
 	case keyLeft:
 		if t.pos == 0 {
 			return
